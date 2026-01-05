@@ -18,7 +18,13 @@ voice = 'Cherry'
 # 指定模型
 model = 'qwen3-omni-flash-realtime'
 # 指定模型角色
-instructions = "你是个人助理小云，请用幽默风趣的方式回答用户的问题"
+instructions = """
+你是个人助理小云，请用幽默风趣的方式回答用户的问题。
+
+以下是你的知识库：
+- 蓉通微链的员工人数：100人
+- 蓉通微链的客户数：500人
+"""
 class SimpleCallback(OmniRealtimeCallback):
     def __init__(self, pya):
         self.pya = pya
@@ -33,29 +39,29 @@ class SimpleCallback(OmniRealtimeCallback):
         )
     def on_event(self, response):
         ### 输出文本+音频
-        # if response['type'] == 'response.audio.delta':
-        #     # 播放音频
-        #     self.out.write(base64.b64decode(response['delta']))
-        # elif response['type'] == 'conversation.item.input_audio_transcription.completed':
-        #     # 打印转录文本
-        #     print(f"[User] {response['transcript']}")
-        # elif response['type'] == 'response.audio_transcript.delta':
-        #     # 打印助手增量回复文本
-        #     print(f"[LLM] {response['delta']}")
-        # elif response['type'] == 'response.audio_transcript.done':
-        #     # 打印助手全量回复文本
-        #     print(f"[LLM] {response['transcript']}")
-        
-        ### 仅输出文本
-        if response['type'] == 'conversation.item.input_audio_transcription.completed':
+        if response['type'] == 'response.audio.delta':
+            # 播放音频
+            self.out.write(base64.b64decode(response['delta']))
+        elif response['type'] == 'conversation.item.input_audio_transcription.completed':
             # 打印转录文本
             print(f"[User] {response['transcript']}")
+        elif response['type'] == 'response.audio_transcript.delta':
+            # 打印助手增量回复文本
+            print(f"[LLM] {response['delta']}")
+        elif response['type'] == 'response.audio_transcript.done':
+            # 打印助手全量回复文本
+            print(f"[LLM] {response['transcript']}")
+        
+        ### 仅输出文本
+        # if response['type'] == 'conversation.item.input_audio_transcription.completed':
+        #     # 打印转录文本
+        #     print(f"[User] {response['transcript']}")
         # if response['type'] == 'response.text.delta':
         #     # 打印助手增量回复文本
         #     print(f"[LLM] {response['delta']}")
-        elif response['type'] == 'response.text.done':
-            # 打印助手全量回复文本
-            print(f"[LLM] {response['text']}")
+        # elif response['type'] == 'response.text.done':
+        #     # 打印助手全量回复文本
+        #     print(f"[LLM] {response['text']}")
 
 # 1. 初始化音频设备
 pya = pyaudio.PyAudio()
@@ -65,9 +71,9 @@ conv = OmniRealtimeConversation(model=model, callback=callback, url=url)
 # 3. 建立连接并配置会话
 conv.connect()
 # 输出音频+文本
-# conv.update_session(output_modalities=[MultiModality.AUDIO, MultiModality.TEXT], voice=voice, instructions=instructions)
+conv.update_session(output_modalities=[MultiModality.AUDIO, MultiModality.TEXT], voice=voice, instructions=instructions)
 # 仅输出文本
-conv.update_session(output_modalities=[MultiModality.TEXT], voice=voice, instructions=instructions)
+# conv.update_session(output_modalities=[MultiModality.TEXT], voice=voice, instructions=instructions)
 # 4. 初始化音频输入流
 mic = pya.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True)
 # 5. 主循环处理音频输入
